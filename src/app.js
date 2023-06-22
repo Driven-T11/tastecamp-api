@@ -4,24 +4,31 @@ import cors from "cors"
 const app = express()
 app.use(cors())
 
+const receitas = [
+	{
+		id: 1,
+		titulo: "Pão com Ovo",
+		ingredientes: "Ovo e pão",
+		preparo: "Frite o ovo e coloque no pão"
+	},
+	{
+		id: 2,
+		titulo: "Mingau de Whey",
+		ingredientes: "Leite, Aveia e Whey",
+		preparo: "Mistura tudo na panela fervendo",
+	},
+]
+
 app.get("/receitas", (req, res) => {
+	res.send(receitas)
+})
 
-    const receitas = [
-	    {
-	        id: 1,
-	        titulo: "Pão com Ovo",
-	        ingredientes: "Ovo e pão",
-	        preparo: "Frite o ovo e coloque no pão"
-	    },
-	    {
-	        id: 2,
-	        titulo: "Mingau de Whey",
-	        ingredientes: "Leite, Aveia e Whey",
-	        preparo: "Mistura tudo na panela fervendo",
-	    },
-	]
+app.get("/receitas/:id", (req, res) => {
+	const { id } = req.params
+	// const id = req.params.id
 
-    res.send(receitas)
+	const receita = receitas.find((rec) => rec.id === Number(id))
+	res.send(receita)
 })
 
 const PORT = 4000
