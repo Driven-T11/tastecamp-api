@@ -3,6 +3,7 @@ import cors from "cors"
 
 const app = express()
 app.use(cors())
+app.use(express.json())
 
 const receitas = [
 	{
@@ -16,12 +17,13 @@ const receitas = [
 		titulo: "Mingau de Whey",
 		ingredientes: "Leite, Aveia e Whey",
 		preparo: "Mistura tudo na panela fervendo",
-	},
+	}
 ]
 
 app.get("/receitas", (req, res) => {
 	res.send(receitas)
 })
+
 
 app.get("/receitas/:id", (req, res) => {
 	const { id } = req.params
@@ -30,6 +32,19 @@ app.get("/receitas/:id", (req, res) => {
 	const receita = receitas.find((rec) => rec.id === Number(id))
 	res.send(receita)
 })
+
+app.post('/receitas', (req, res) => {
+	const novaReceita = {
+		id: receitas.length + 1,
+		titulo: req.body.titulo,
+		ingredientes: req.body.ingredientes,
+		preparo: req.body.preparo
+	}
+
+	receitas.push(novaReceita)
+	res.send("Receita adicionada com sucesso!")
+})
+
 
 const PORT = 4000
 app.listen(PORT, () => console.log(`Servidor está rodando na porta ${PORT}`))
