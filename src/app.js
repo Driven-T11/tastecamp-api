@@ -33,16 +33,16 @@ app.get("/receitas/:id", (req, res) => {
 	res.send(receita)
 })
 
-app.post('/receitas', (req, res) => {
-	const novaReceita = {
-		id: receitas.length + 1,
-		titulo: req.body.titulo,
-		ingredientes: req.body.ingredientes,
-		preparo: req.body.preparo
+app.post("/receitas", (req, res) => {
+	const { titulo, ingredientes, preparo } = req.body
+
+	if (!titulo || !ingredientes || !preparo) {
+		return res.status(422).send({ message: "Todos os campos são obrigatórios!!!" })
 	}
 
+	const novaReceita = { id: receitas.length + 1, titulo, ingredientes, preparo }
 	receitas.push(novaReceita)
-	res.send("Receita adicionada com sucesso!")
+	res.sendStatus(201)
 })
 
 
