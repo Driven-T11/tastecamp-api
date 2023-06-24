@@ -17,17 +17,40 @@ const receitas = [
 		titulo: "Mingau de Whey",
 		ingredientes: "Leite, Aveia e Whey",
 		preparo: "Mistura tudo na panela fervendo",
+	},
+	{
+		id: 3,
+		titulo: "Omelete",
+		ingredientes: "Ovo",
+		preparo: "Bata os ovos e frite na frigideira"
 	}
 ]
 
+// localhost:4000/receitas
+// axios.get("localhost:4000/receitas?ingredientes=Ovo&limit")
 app.get("/receitas", (req, res) => {
+	// const { ingredientes } = req.query
+	const ingredientes = req.query.ingredientes
+
+	if (ingredientes) {
+		const receitasFiltradas = receitas.filter(
+			receita => receita.ingredientes.includes(ingredientes)
+		)
+		res.send(receitasFiltradas)
+		return
+	}
+
 	res.send(receitas)
 })
-
 
 app.get("/receitas/:id", (req, res) => {
 	const { id } = req.params
 	// const id = req.params.id
+	const { auth } = req.headers
+
+	if (!auth) {
+		return res.status(401).send("Faça login!")
+	}
 
 	const receita = receitas.find((rec) => rec.id === Number(id))
 	res.send(receita)
