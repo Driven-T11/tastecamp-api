@@ -1,10 +1,23 @@
 import express from "express"
 import cors from "cors"
+import { MongoClient } from "mongodb"
 
+// Criação do app
 const app = express()
+
+// Configurações
 app.use(cors())
 app.use(express.json())
 
+// Conexão com o Banco
+const mongoClient = new MongoClient("mongodb://localhost:27017/tastecamp")
+let db
+
+mongoClient.connect()
+	.then(() => db = mongoClient.db())
+	.catch((err) => console.log(err.message))
+
+// Variáveis Globais
 const receitas = [
 	{
 		id: 1,
@@ -26,26 +39,16 @@ const receitas = [
 	}
 ]
 
-// localhost:4000/receitas
-// axios.get("localhost:4000/receitas?ingredientes=Ovo&limit")
+// Funções (endpoints)
 app.get("/receitas", (req, res) => {
-	// const { ingredientes } = req.query
-	const ingredientes = req.query.ingredientes
+	const promise = db.collection("receitas").find().toArray()
 
-	if (ingredientes) {
-		const receitasFiltradas = receitas.filter(
-			receita => receita.ingredientes.includes(ingredientes)
-		)
-		res.send(receitasFiltradas)
-		return
-	}
-
-	res.send(receitas)
+	promise.then(data => res.send(data))
+	promise.catch(err => res.status(500).send(err.message))
 })
 
 app.get("/receitas/:id", (req, res) => {
 	const { id } = req.params
-	// const id = req.params.id
 	const { auth } = req.headers
 
 	if (!auth) {
@@ -63,11 +66,15 @@ app.post("/receitas", (req, res) => {
 		return res.status(422).send({ message: "Todos os campos são obrigatórios!!!" })
 	}
 
-	const novaReceita = { id: receitas.length + 1, titulo, ingredientes, preparo }
-	receitas.push(novaReceita)
-	res.sendStatus(201)
+	const novaReceita = { titulo, ingredientes, preparo }
+
+	const promise = db.collection("receitas").insertOne(novaReceita)
+	
+	promise.then(() => res.sendStatus(201))
+	promise.catch(err => res.status(500).send(err.message))
 })
 
 
+// Ligar a aplicação do servidor para ouvir requisições
 const PORT = 4000
 app.listen(PORT, () => console.log(`Servidor está rodando na porta ${PORT}`))
