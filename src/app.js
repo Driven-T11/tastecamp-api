@@ -1,6 +1,7 @@
 import express from "express"
 import cors from "cors"
 import { MongoClient } from "mongodb"
+import dotenv from "dotenv"
 
 // Criação do app
 const app = express()
@@ -8,9 +9,10 @@ const app = express()
 // Configurações
 app.use(cors())
 app.use(express.json())
+dotenv.config()
 
 // Conexão com o Banco
-const mongoClient = new MongoClient("mongodb://localhost:27017/tastecamp")
+const mongoClient = new MongoClient(process.env.DATABASE_URL)
 let db
 
 mongoClient.connect()
