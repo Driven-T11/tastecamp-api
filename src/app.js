@@ -13,41 +13,51 @@ dotenv.config()
 
 // Conexão com o Banco
 const mongoClient = new MongoClient(process.env.DATABASE_URL)
-let db
 
-mongoClient.connect()
-	.then(() => db = mongoClient.db())
-	.catch((err) => console.log(err.message))
+try {
+	await mongoClient.connect() // top level await
+	console.log("MongoDB conectado!")
+} catch (err) {
+	(err) => console.log(err.message)
+}
+
+const db = mongoClient.db()
 
 // Funções (endpoints)
-app.get("/receitas", (req, res) => {
-	const promise = db.collection("receitas").find().toArray()
-
-	promise.then(data => res.send(data))
-	promise.catch(err => res.status(500).send(err.message))
+app.get("/receitas", async (req, res) => {
+	try {
+		const receitas = await db.collection("receitas").find().toArray()
+		res.send(receitas)
+	} catch (err) {
+		res.status(500).send(err.message)
+	}
 })
 
-app.get("/receitas/:id", (req, res) => {
+app.get("/receitas/:id", async (req, res) => {
 	const { id } = req.params
 
-	db.collection("receitas").findOne({ _id: new ObjectId(id) })
-		.then(receita => res.send(receita))
-		.catch(err => res.status(500).send(err.message))
+	try {
+		const receita = await db.collection("receitas").findOne({ _id: new ObjectId(id) })
+		res.send(receita)
+	} catch (err) {
+		res.status(500).send(err.message)
+	}
 })
 
-app.post("/receitas", (req, res) => {
+app.post("/receitas", async (req, res) => {
 	const { titulo, ingredientes, preparo } = req.body
 
-	if (!titulo || !ingredientes || !preparo) {
-		return res.status(422).send({ message: "Todos os campos são obrigatórios!!!" })
+	if (!titulo || !ingredientes || !preparo) return res.status(422).send("Preencha todos os campos!")
+
+	try {
+		const receita = await db.collection("receitas").findOne({ titulo: titulo })
+		if (receita) return res.status(409).send("Essa receita já existe!")
+
+		await db.collection("receitas").insertOne({ titulo, ingredientes, preparo })
+		res.sendStatus(201)
+	} catch (err) {
+		res.status(500).send(err.message)
 	}
-
-	const novaReceita = { titulo, ingredientes, preparo }
-
-	const promise = db.collection("receitas").insertOne(novaReceita)
-
-	promise.then(() => res.sendStatus(201))
-	promise.catch(err => res.status(500).send(err.message))
 })
 
 
