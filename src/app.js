@@ -72,6 +72,30 @@ app.post("/receitas", async (req, res) => {
 	}
 })
 
+app.delete("/receitas/:id", async (req, res) => {
+	const { id } = req.params
+
+	try {
+		const result = await db.collection("receitas").deleteOne({ _id: new ObjectId(id) })
+		if (result.deletedCount === 0) return res.status(404).send("Essa receita não existe!")
+
+		res.status(204).send("Receita deletada com sucesso!")
+	} catch (err) {
+		res.status(500).send(err.message)
+	}
+})
+
+app.delete("/receitas/muitas/:filtroIngredientes", async (req, res) => {
+	const { filtroIngredientes } = req.params
+
+	try {
+		await db.collection("receitas").deleteMany({ ingredientes: filtroIngredientes })
+		res.sendStatus(204)
+	} catch (err) {
+		res.status(500).send(err.message)
+	}
+})
+
 
 // Ligar a aplicação do servidor para ouvir requisições
 const PORT = 4000
