@@ -96,6 +96,38 @@ app.delete("/receitas/muitas/:filtroIngredientes", async (req, res) => {
 	}
 })
 
+app.put("/receitas/:id", async (req, res) => {
+	const { id } = req.params
+	const { titulo, preparo, ingredientes } = req.body
+
+	try {
+		// result tem:  matchedCount  (quantidade de itens que encotrou com esse id)
+		// 				modifiedCount (quantidade de itens que de fato mudaram com a edição)
+		const result = await db.collection('receitas').updateOne(
+			{ _id: new ObjectId(id) },
+			{ $set: { titulo, preparo, ingredientes } }
+		)
+		if (result.matchedCount === 0) return res.status(404).send("esse item não existe!")
+		res.send("Receita atualizada!")
+	} catch (err) {
+		res.status(500).send(err.message)
+	}
+})
+
+app.put("/receitas/muitas/:filtroIngredientes", async (req, res) => {
+	const { filtroIngredientes } = req.params
+	const { titulo, ingredientes, preparo } = req.body
+
+	try {
+		await db.collection('receitas').updateMany(
+			{ ingredientes: { $regex: filtroIngredientes, $options: 'i' } },
+			{ $set: { titulo } }
+		)
+		res.sendStatus(200)
+	} catch (err) {
+		return res.status(500).send(err.message)
+	}
+})
 
 // Ligar a aplicação do servidor para ouvir requisições
 const PORT = 4000
