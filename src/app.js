@@ -3,6 +3,7 @@ import cors from "cors"
 import { MongoClient, ObjectId } from "mongodb"
 import dotenv from "dotenv"
 import Joi from "joi"
+import bcrypt from "bcrypt"
 
 // Criação do app
 const app = express()
@@ -126,6 +127,36 @@ app.put("/receitas/muitas/:filtroIngredientes", async (req, res) => {
 		res.sendStatus(200)
 	} catch (err) {
 		return res.status(500).send(err.message)
+	}
+})
+
+app.post("/sign-up", async (req, res) => {
+	const { nome, email, senha } = req.body
+
+	const hash = bcrypt.hashSync(senha, 10)
+
+	try {
+		await db.collection("usuarios").insertOne({ nome, email, senha: hash })
+		res.sendStatus(201)
+	} catch (err) {
+		res.status(500).send(err.message)
+	}
+
+})
+
+app.post("/sign-in", async (req, res) => {
+	const { email, senha } = req.body
+
+	try {
+		const usuario = await db.collection("usuarios").findOne({ email })
+		if (!usuario) return res.status(404).send("Usuário não cadastrado")
+
+		const senhaEstaCorreta = bcrypt.compareSync(senha, usuario.senha)
+		if (!senhaEstaCorreta) return res.status(401).send("Senha incorreta")
+
+		res.sendStatus(200)
+	} catch (err) {
+		res.status(500).send(err.message)
 	}
 })
 
