@@ -4,6 +4,7 @@ import { MongoClient, ObjectId } from "mongodb"
 import dotenv from "dotenv"
 import Joi from "joi"
 import bcrypt from "bcrypt"
+import { v4 as uuid } from "uuid"
 
 // Criação do app
 const app = express()
@@ -154,7 +155,30 @@ app.post("/sign-in", async (req, res) => {
 		const senhaEstaCorreta = bcrypt.compareSync(senha, usuario.senha)
 		if (!senhaEstaCorreta) return res.status(401).send("Senha incorreta")
 
-		res.sendStatus(200)
+		const token = uuid()
+		await db.collection("sessao").insertOne({ token, idUsuario: usuario._id })
+
+		res.send(token)
+	} catch (err) {
+		res.status(500).send(err.message)
+	}
+})
+
+app.get("/usuario-logado", async (req, res) => {
+	const { authorization } = req.headers
+	const token = authorization?.replace("Bearer ", "")
+
+	if (!token) return res.sendStatus(401)
+
+	try {
+		const sessao = await db.collection("sessao").findOne({ token })
+		if (!sessao) return res.sendStatus(401)
+
+		// opcional - se quiser saber os dados do usuario
+		const usuario = await db.collection("usuarios").findOne({ _id: sessao.idUsuario })
+
+		delete usuario.senha
+		res.send(usuario)
 	} catch (err) {
 		res.status(500).send(err.message)
 	}
