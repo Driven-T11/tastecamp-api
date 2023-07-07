@@ -5,6 +5,7 @@ import { schemaReceita } from "../schemas/receita.schemas.js"
 import { validateAuth } from "../middlewares/validateAuth.js"
 
 const recipeRouter = Router()
+
 recipeRouter.use(validateAuth)
 
 recipeRouter.get("/receitas", getRecipe)
