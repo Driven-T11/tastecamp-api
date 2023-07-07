@@ -1,17 +1,9 @@
 import bcrypt from "bcrypt"
 import { v4 as uuid } from "uuid"
 import { db } from "../database/database.connection.js"
-import { schemaUsuario } from "../schemas/usuario.schemas.js"
 
 export async function signup(req, res) {
     const { nome, email, senha } = req.body
-
-    const validation = schemaUsuario.validate(req.body, { abortEarly: false })
-
-    if (validation.error) {
-        const errors = validation.error.details.map(detail => detail.message)
-        return res.status(422).send(errors)
-    }
 
     const hash = bcrypt.hashSync(senha, 10)
 

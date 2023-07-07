@@ -1,16 +1,7 @@
 import { db } from "../database/database.connection.js"
 import { ObjectId } from "mongodb"
-import { schemaReceita } from "../schemas/receita.schemas.js"
 
 export async function createRecipe(req, res) {
-    const { titulo, preparo, ingredientes } = req.body
-    const validation = schemaReceita.validate(req.body, { abortEarly: false })
-
-    if (validation.error) {
-        const errors = validation.error.details.map(detail => detail.message)
-        return res.status(422).send(errors)
-    }
-
     try {
         const receita = await db.collection("receitas").findOne({ titulo: titulo })
         if (receita) return res.status(409).send("Essa receita já existe!")
@@ -34,7 +25,7 @@ export async function getRecipe(req, res) {
 
 export async function getRecipeById(req, res) {
     const { id } = req.params
-
+    
 
     try {
         const receita = await db.collection("receitas").findOne({ _id: new ObjectId(id) })
@@ -71,13 +62,6 @@ export async function deleteRecipesByIngredients(req, res) {
 export async function editRecipe(req, res) {
     const { id } = req.params
     const { titulo, preparo, ingredientes } = req.body
-
-    const validation = schemaReceita.validate(req.body, { abortEarly: false })
-
-    if (validation.error) {
-        const errors = validation.error.details.map(detail => detail.message)
-        return res.status(422).send(errors)
-    }
 
     try {
         const result = await db.collection('receitas').updateOne(
